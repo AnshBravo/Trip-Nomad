@@ -8,6 +8,7 @@ export default {
     extend: {
       colors: {
         midnight: '#211D2D',
+        midnightFade: 'rgba(33, 29, 45, 0.85)',
         obsidian: '#0D0D0D',
         alabaster: '#3D348B',
         blush: '#F2DFD8',
