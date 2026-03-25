@@ -1,18 +1,23 @@
-import { React, useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '../assets/Trip Nomad logo.png';
 
-const Sidebar = () => {
+const Sidebar = ({ activePage = 'Home', onNavigate = () => {} }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
-    { name: 'Home', active: true },
-    { name: 'Trending Places', active: false },
-    { name: 'Your Vault', active: false },
-    { name: 'Saved Places', active: false },
-    { name: 'Hotels', active: false },
-    { name: 'Settings', active: false },
+    { name: 'Home' },
+    { name: 'Trending Places' },
+    { name: 'Your Vault' },
+    { name: 'Saved Places' },
+    { name: 'Hotels' },
+    { name: 'Settings' },
   ];
+
+  const handleNavClick = (name) => {
+    onNavigate(name);
+    setIsOpen(false);
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col w-64 h-screen bg-white border-r border-gray-200 font-jakarta overflow-y-auto overflow-x-hidden relative z-40">
@@ -30,19 +35,23 @@ const Sidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1">
-        {menuItems.map((item) => (
-          <motion.button
-            key={item.name}
-            whileHover={{ x: item.active ? 0 : 4 }}
-            className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors ${
-              item.active
-                ? 'bg-midnightFade text-white shadow-md border-l-8 border-midnight'
-                : 'text-gray-500 hover:bg-gray-100 hover:text-midnight'
-            }`}
-          >
-            {item.name}
-          </motion.button>
-        ))}
+        {menuItems.map((item) => {
+          const isActive = item.name === activePage;
+          return (
+            <motion.button
+              key={item.name}
+              onClick={() => handleNavClick(item.name)}
+              whileHover={{ x: isActive ? 0 : 4 }}
+              className={`w-full text-left px-4 py-3 text-sm font-semibold transition-colors ${
+                isActive
+                  ? 'bg-midnightFade text-white shadow-md border-l-8 border-midnight'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-midnight'
+              }`}
+            >
+              {item.name}
+            </motion.button>
+          );
+        })}
       </nav>
 
       {/* Log Out */}
@@ -57,11 +66,8 @@ const Sidebar = () => {
   return (
     <>
       {/* 1. CUSTOM TWO-BAR HAMBURGER */}
-      <motion.div animate ={{
-        backgroundColor: isOpen ? 'black' : 'transparent',
-        paddingRight: isOpen ? '215px' : "0px" 
-      }} 
-      className={isOpen ? "lg:hidden fixed z-70 bg-black pr-54" : "lg:hidden fixed z-70 "}>
+      <motion.div  
+      className={isOpen ? "lg:hidden fixed z-70 " : "lg:hidden fixed z-70 "}>
         <button 
           onClick={() => setIsOpen(!isOpen)}
           className="flex flex-col justify-center items-center w-10 h-10 space-y-1.5 focus:outline-none"
@@ -71,7 +77,7 @@ const Sidebar = () => {
               rotate: isOpen ? 45 : 0, 
               y: isOpen ? 4 : 0,
               width: isOpen ? "20px" : "24px", 
-              backgroundColor: isOpen ? 'white' : 'black'
+              backgroundColor: isOpen ? '#ef4444' : 'black'
             }}
             className="h-0.5 bg-white rounded-full block"
           />
@@ -80,7 +86,7 @@ const Sidebar = () => {
               rotate: isOpen ? -45 : 0, 
               y: isOpen ? -4 : 0,
               width: "20px" ,
-              backgroundColor: isOpen ? 'white' : 'black'
+              backgroundColor: isOpen ? '#ef4444' : 'black'
             }}
             className="h-0.5 bg-white rounded-full block"
           />
