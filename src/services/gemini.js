@@ -75,7 +75,7 @@ export const getTrendingPlaces = async (count = 6) => {
 
 // 2. GET AI TRAVEL SUGGESTIONS (Search Feature)
 export const getAITravelSuggestions = async (query) => {
-  const prompt = `Suggest 8 travel destinations for search: "${query}". 
+  const prompt = `Suggest 20 travel destinations for search: "${query}". 
   Return ONLY a JSON array with: "city", "country", "description", "level", "vibe".`;
 
   try {
@@ -94,6 +94,26 @@ export const getAITravelSuggestions = async (query) => {
     ];
   } catch (err) {
     console.error("Search API Error:", err);
+    return [];
+  }
+};
+
+// ... existing imports and fetchWithFallback ...
+
+export const getSpecificPlacesInCountry = async (country) => {
+  const prompt = `Provide exactly 5 of the best specific places/attractions to visit in ${country}.
+  For each place, include:
+  - "name": Name of the attraction or city
+  - "description": A short, high-end travel description
+  - "activities": An array of 3 top things to do there
+  - "food": A specific must-try dish for that exact area
+  Return ONLY a JSON array.`;
+
+  try {
+    const data = await fetchWithFallback(prompt);
+    return data || [];
+  } catch (err) {
+    console.error("Country Details API Error:", err);
     return [];
   }
 };

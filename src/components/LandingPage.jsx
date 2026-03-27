@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // <--- ADDED
 import { motion } from 'framer-motion';
 import { Search, Star, MapPin } from 'lucide-react';
 import ill1 from '../assets/illustrations/Illustration-diagram-1.png'
@@ -9,8 +10,7 @@ import planeAccent from '../assets/illustrations/Yuppies - Airplane.png';
 import bird from '../assets/illustrations/Hands - Bird.png';
 import bagAccent from '../assets/illustrations/Hobbies - Suitcase.png';
 import { getTrendingPlaces } from '../services/gemini';
-import { getCityImage } from '../services/unsplash'; // <--- IMPORTED
-import SearchView from './SearchView';
+import { getCityImage } from '../services/unsplash'; 
 
 const TrendingCard = ({ dest, index }) => {
   return (
@@ -21,14 +21,12 @@ const TrendingCard = ({ dest, index }) => {
       whileHover={{ y: -8 }}
       className="min-w-[280px] md:min-w-[320px] h-[380px] rounded-4xl overflow-hidden shadow-sm border border-white/10 relative cursor-pointer flex-shrink-0"
     >
-      {/* ── IMAGE LOGIC ADDED HERE ── */}
       <img 
         src={dest.imageUrl || "https://images.unsplash.com/photo-1488646953014-85cb44e25828"} 
         alt={dest.city}
         className="absolute inset-0 w-full h-full object-cover"
       />
       
-      {/* Keeping your original gradients for that specific vibe look */}
       <div className="absolute inset-0 opacity-40"  />
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.05) 60%, transparent 100%)' }} />
       
@@ -65,26 +63,23 @@ const SkeletonCard = () => (
   <div className="min-w-[280px] md:min-w-[320px] h-[380px] rounded-4xl flex-shrink-0 bg-gray-200 animate-pulse" />
 );
 
-const LandingPage = ({ onNavigate }) => {
-  const [searchQuery, setSearchQuery] = useState('');
+const LandingPage = ({ setSearchQuery }) => {
+  const navigate = useNavigate(); // <--- INITIALIZED
+  const [localQuery, setLocalQuery] = useState('');
   const [trendingPlaces, setTrendingPlaces] = useState([]);
   const [isTrendingLoading, setIsTrendingLoading] = useState(true);
-  const [isSearchView, setIsSearchView] = useState(false);
 
   useEffect(() => {
     const fetchTrending = async () => {
       try {
         setIsTrendingLoading(true);
         const places = await getTrendingPlaces(6);
-        
-        // ── FETCH IMAGES FOR CAROUSEL ──
         const placesWithImages = await Promise.all(
           places.map(async (place) => {
             const imageUrl = await getCityImage(place.city);
             return { ...place, imageUrl };
           })
         );
-        
         setTrendingPlaces(placesWithImages);
       } catch (e) {
         console.error('Trending fetch error:', e);
@@ -96,17 +91,11 @@ const LandingPage = ({ onNavigate }) => {
   }, []);
 
   const handleExplore = () => {
-    setIsSearchView(true);
+    if (localQuery.trim()) {
+      setSearchQuery(localQuery); // Update global state in App.jsx
+      navigate('/search'); // Navigate to the search route
+    }
   };
-
-  if (isSearchView) {
-    return (
-      <SearchView
-        initialQuery={searchQuery}
-        onBack={() => setIsSearchView(false)}
-      />
-    );
-  }
 
   return (
     <div className="flex-1 bg-gray-50 min-h-screen font-jakarta p-4 pt-24 lg:p-10 lg:pt-10 overflow-x-hidden">
@@ -117,25 +106,25 @@ const LandingPage = ({ onNavigate }) => {
           src={boat} 
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-16 lg:-top-8 left-0 w-26 md:w-24  md:block opacity-80"
+          className="absolute -top-16 lg:-top-8 left-0 w-26 md:w-24 opacity-80"
         />
         <motion.img 
           src={planeAccent} 
           animate={{ x: [0, 10, 0], y: [0, -5, 0] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 lg:-top-8 right-60 w-16 md:w-20  md:block opacity-80"
+          className="absolute -top-20 lg:-top-8 right-60 w-16 md:w-20 opacity-80"
         />
         <motion.img 
           src={bird} 
           animate={{ scale: [1, 1.05, 1] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-24 lg:top-0 -right-4 w-30 md:w-32  lg:block opacity-90"
+          className="absolute -top-24 lg:top-0 -right-4 w-30 md:w-32 opacity-90"
         />
         <motion.img 
           src={bagAccent} 
           animate={{ rotate: [-2, 4, -6] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-12 left-10 w-20 md:w-28  md:block"
+          className="absolute bottom-12 left-10 w-20 md:w-28"
         />
 
         <motion.h1 
@@ -155,8 +144,8 @@ const LandingPage = ({ onNavigate }) => {
           </div>
           <input 
             type="text" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={localQuery}
+            onChange={(e) => setLocalQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleExplore()}
             placeholder="Search destinations, hotels, or hidden gems..."
             className="w-full bg-white border border-gray-200 py-4 lg:py-5 pl-14 pr-32 rounded-2xl shadow-sm focus:ring-4 focus:ring-alabaster/10 focus:border-alabaster outline-none transition-all text-sm font-medium"
@@ -175,7 +164,7 @@ const LandingPage = ({ onNavigate }) => {
             <p className="text-sm text-gray-500">Based on your Nomad Level</p>
           </div>
           <button
-            onClick={() => onNavigate('Trending Places')}
+            onClick={() => navigate('/trending')}
             className="text-alabaster font-bold text-sm hover:underline"
           >View All</button>
         </div>
@@ -188,7 +177,7 @@ const LandingPage = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* ── REST OF YOUR UI (DIAGRAMS & STATS) UNTOUCHED ── */}
+      {/* 3. DIAGRAMS SECTION */}
       <section className="mb-16 mt-8 max-w-5xl mx-auto px-4">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-4">
           <div className="flex flex-col items-center">
@@ -220,8 +209,12 @@ const LandingPage = ({ onNavigate }) => {
         </div>
       </section>
 
+      {/* 4. STATS SECTION */}
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-midnight p-8 rounded-4xl text-white shadow-xl flex flex-col justify-between relative overflow-hidden">
+        <div 
+          onClick={() => navigate('/vault')}
+          className="bg-midnight p-8 rounded-4xl text-white shadow-xl flex flex-col justify-between relative overflow-hidden cursor-pointer"
+        >
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-alabaster/20 rounded-full blur-3xl" />
           <div>
             <p className="text-alabaster font-black uppercase text-[10px] tracking-[0.2em] mb-3">Vault Status</p>
